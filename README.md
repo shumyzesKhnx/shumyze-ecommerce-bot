@@ -1,3 +1,4 @@
+HEAD
 # E-Commerce Customer Support Chatbot
 
 An AI-powered customer support chatbot built using Python and Groq API to assist customers with common e-commerce queries.
@@ -45,3 +46,6 @@ Currently under development as part of a five-day AI Engineering internship task
 ## Security
 
 Never share or commit your actual API key. Keep the `.env` file excluded through `.gitignore`.
+# shumyze-ecommerce-bot
+Week -1 Task
+4aeade67ff87d02f7f493375f76350a3d5ff5db0
