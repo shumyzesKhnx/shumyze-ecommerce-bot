@@ -10,26 +10,34 @@ async def chat():
 
     async with websockets.connect(uri) as websocket:
 
+        # Outer loop: keep the conversation running
         while True:
+
             user_message = input("\nYou: ")
 
             if user_message.lower() == "exit":
+                print("Closing chat...")
                 break
 
             await websocket.send(user_message)
 
             print("Bot: ", end="", flush=True)
 
+            # Inner loop: receive one complete response
             while True:
+
                 response = await websocket.recv()
                 data = json.loads(response)
 
                 if data["type"] == "token":
+
                     print(data["content"], end="", flush=True)
 
                 elif data["type"] == "done":
-                    print()
+
+                    print("\n")
                     break
 
 
-asyncio.run(chat())
+if __name__ == "__main__":
+    asyncio.run(chat())
