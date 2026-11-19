@@ -1,0 +1,93 @@
+
+[
+  {
+    "id": "faq1",
+    "category": "Returns",
+    "question": "Can I return a product?",
+    "answer": "Customers should check the product's return eligibility and applicable return conditions on the product page or contact customer support for assistance."
+  },
+  {
+    "id": "faq2",
+    "category": "Returns",
+    "question": "How can I request a product return?",
+    "answer": "To request a return, provide your order number and product details to customer support. The support team can guide you through the return process."
+  },
+  {
+    "id": "faq3",
+    "category": "Returns",
+    "question": "Can I return a damaged product?",
+    "answer": "If your product arrives damaged, contact customer support and provide your order number and photographs of the damage so the issue can be reviewed."
+  },
+  {
+    "id": "faq4",
+    "category": "Returns",
+    "question": "Can I exchange a product instead of returning it?",
+    "answer": "Exchange eligibility depends on the product and applicable store policy. Contact customer support with your order details to check available options."
+  },
+  {
+    "id": "faq5",
+    "category": "Refunds",
+    "question": "How can I get a refund?",
+    "answer": "Once a return or refund request is approved, the refund is processed according to the applicable refund policy and payment method."
+  },
+  {
+    "id": "faq6",
+    "category": "Refunds",
+    "question": "How long does a refund take?",
+    "answer": "Refund processing time depends on the payment method and the applicable refund process. Contact customer support for an update on your refund."
+  },
+  {
+    "id": "faq7",
+    "category": "Refunds",
+    "question": "Can I get a refund for a cancelled order?",
+    "answer": "Refund eligibility for a cancelled order depends on its payment and cancellation status. Contact customer support with your order number for confirmation."
+  },
+  {
+    "id": "faq8",
+    "category": "Refunds",
+    "question": "How can I check my refund status?",
+    "answer": "You can contact customer support with your order number and refund reference, if available, to request an update."
+  },
+  {
+    "id": "faq9",
+    "category": "Shipping",
+    "question": "How can I track my order?",
+    "answer": "You can check your order status using your order number or contact customer support for tracking assistance."
+  },
+  {
+    "id": "faq10",
+    "category": "Shipping",
+    "question": "How long does delivery take?",
+    "answer": "Delivery estimates depend on the delivery location, product availability, and shipping method. Check your order confirmation for the estimated delivery information."
+  },
+  {
+    "id": "faq11",
+    "category": "Shipping",
+    "question": "What should I do if my order is delayed?",
+    "answer": "If your order is delayed, check its latest status and contact customer support with your order number for assistance."
+  },
+  {
+    "id": "faq12",
+    "category": "Shipping",
+    "question": "Do you offer international shipping?",
+    "answer": "International shipping availability depends on the destination and applicable shipping arrangements. Contact customer support to confirm availability."
+  },
+  {
+    "id": "faq13",
+    "category": "Warranty",
+    "question": "Do products come with a warranty?",
+    "answer": "Warranty availability and coverage depend on the individual product. Check the product listing or warranty documentation for details."
+  },
+  {
+    "id": "faq14",
+    "category": "Warranty",
+    "question": "How can I claim a product warranty?",
+    "answer": "To request warranty assistance, provide your order details and available warranty documentation to customer support."
+  },
+  {
+    "id": "faq15",
+    "category": "Warranty",
+    "question": "What does a product warranty cover?",
+    "answer": "Warranty coverage varies by product and manufacturer. Refer to the product's warranty documentation for covered defects, exclusions, and conditions."
+  }
+]

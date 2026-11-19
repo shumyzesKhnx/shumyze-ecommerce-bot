@@ -6,6 +6,8 @@ from dotenv import load_dotenv
 from groq import AsyncGroq
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
+from ingest import search_faq
+
 
 # Load environment variables
 load_dotenv()
@@ -92,13 +94,31 @@ async def chat(websocket: WebSocket):
         {
             "role": "system",
             "content": (
-                "You are an E-Commerce Customer Support Assistant. "
+                "You are ShopMate, an E-Commerce Customer Support Assistant. "
                 "Help customers with orders, returns, shipping and warranties. "
-                "Be polite and professional. "
-                "When a customer asks about a specific order, "
-                "use the get_order_status tool to retrieve its information. "
+                "Be polite, friendly and professional. "
+
+                "When a customer asks about a specific order, use the "
+                "get_order_status tool to retrieve its information. "
                 "Never invent order information or claim an order status "
-                "without checking the tool."
+                "without checking the tool. "
+
+                "STRICT FAQ AND POLICY RULES: "
+                "Use retrieved FAQ information as the only source of "
+                "confirmed company policies. "
+                "Never invent or assume return conditions, refund timelines, "
+                "exchange guarantees, shipping charges, warranty coverage, "
+                "email addresses, phone numbers or contact links. "
+                "Do not promise prepaid return labels, refunds or exchanges "
+                "unless the retrieved FAQ explicitly confirms them. "
+                "If the FAQ does not contain the answer, politely explain "
+                "that you do not have confirmed information and recommend "
+                "contacting the company's support team. "
+                "You may ask for an order number when necessary, but do not "
+                "claim you can verify return eligibility unless an "
+                "appropriate tool provides that information. "
+                "Accuracy is more important than giving a complete-sounding "
+                "answer."
             )
         }
     ]
@@ -111,9 +131,46 @@ async def chat(websocket: WebSocket):
             # Receive user message
             user_message = await websocket.receive_text()
 
+            # Search relevant FAQs
+            faq_results = search_faq(user_message)
+
+            if faq_results:
+
+                faq_context = "\n\n".join(
+                    [
+                        f"Category: {item['category']}\n"
+                        f"FAQ Answer: {item['answer']}"
+                        for item in faq_results
+                    ]
+                )
+
+                user_content = (
+                    f"Customer question: {user_message}\n\n"
+                    f"Retrieved FAQ information:\n{faq_context}\n\n"
+                    "Instructions:\n"
+                    "- Answer using only the retrieved FAQ information "
+                    "for company policies.\n"
+                    "- Do not add details that are not present in the FAQs.\n"
+                    "- If the FAQs do not fully answer the question, "
+                    "clearly mention what information is unavailable.\n"
+                    "- You may ask relevant follow-up questions, such as "
+                    "the customer's order number.\n"
+                )
+
+            else:
+
+                user_content = (
+                    f"Customer question: {user_message}\n\n"
+                    "No relevant FAQ information was found.\n"
+                    "Do not guess or invent company policies.\n"
+                    "Politely explain that you do not have confirmed "
+                    "information and recommend contacting customer support."
+                )
+
+            # Add user message to conversation history
             messages.append({
                 "role": "user",
-                "content": user_message
+                "content": user_content
             })
 
 
@@ -146,12 +203,20 @@ async def chat(websocket: WebSocket):
 
                     function_name = tool_call.function.name
 
+                    print(
+                        f"\n[TOOL CALL] Function requested: {function_name}"
+                    )
+
+                    print(
+                        f"[TOOL CALL] Arguments: "
+                        f"{tool_call.function.arguments}"
+                    )
+
                     arguments = json.loads(
                         tool_call.function.arguments
                     )
 
-                    print(f"Tool called: {function_name}")
-                    print(f"Arguments: {arguments}")
+                    print(f"[TOOL EXECUTION] Executing {function_name}...")
 
                     if function_name == "get_order_status":
 
@@ -159,7 +224,14 @@ async def chat(websocket: WebSocket):
                             arguments["order_id"]
                         )
 
+                        print(f"[TOOL RESULT] {result}")
+
                     else:
+
+                        print(
+                            f"[WARNING] Unexpected tool name: {function_name}"
+                        )
+
                         result = {"error": "Unknown function"}
 
                     # Send function result back to Groq
@@ -172,6 +244,7 @@ async def chat(websocket: WebSocket):
                 tool_rounds += 1
 
                 if tool_rounds >= 5:
+
                     raise RuntimeError(
                         "Maximum tool-calling rounds exceeded."
                     )
@@ -181,9 +254,7 @@ async def chat(websocket: WebSocket):
             stream = await client.chat.completions.create(
                 model=MODEL,
                 messages=messages,
-                tools=tools,
-                stream=True,
-                tool_choice="none"
+                stream=True
             )
 
             assistant_response = ""

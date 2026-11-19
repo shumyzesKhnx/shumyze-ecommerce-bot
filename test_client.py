@@ -21,7 +21,7 @@ async def chat():
 
             await websocket.send(user_message)
 
-            print("Bot: ", end="", flush=True)
+            print("ShopMate: ", end="", flush=True)
 
             # Inner loop: receive one complete response
             while True:
