@@ -1,4 +1,6 @@
 
+from fastapi.responses import FileResponse
+from pathlib import Path
 import os
 import json
 
@@ -9,8 +11,11 @@ from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from ingest import search_faq
 
 
+# Project paths
+BASE_DIR = Path(__file__).resolve().parent
+
 # Load environment variables
-load_dotenv()
+load_dotenv(BASE_DIR / ".env")
 
 
 # Initialize Groq client
@@ -23,6 +28,12 @@ MODEL = os.getenv("GROQ_MODEL")
 
 # Initialize FastAPI application
 app = FastAPI()
+
+
+# Serve the frontend
+@app.get("/")
+async def home():
+    return FileResponse(BASE_DIR / "index.html")
 
 
 # Mock order database
@@ -94,31 +105,64 @@ async def chat(websocket: WebSocket):
         {
             "role": "system",
             "content": (
-                "You are ShopMate, an E-Commerce Customer Support Assistant. "
-                "Help customers with orders, returns, shipping and warranties. "
-                "Be polite, friendly and professional. "
+                "You are ShopMate, an E-Commerce Customer Support "
+                "Assistant. Help customers with orders, returns, "
+                "shipping and warranties. Be friendly, natural, "
+                "polite and concise.\n\n"
 
-                "When a customer asks about a specific order, use the "
-                "get_order_status tool to retrieve its information. "
-                "Never invent order information or claim an order status "
-                "without checking the tool. "
+                "ORDER INFORMATION: "
+                "When a customer asks about a specific order, use "
+                "the get_order_status tool. Never invent order "
+                "information or claim an order status without "
+                "checking the tool.\n\n"
 
-                "STRICT FAQ AND POLICY RULES: "
-                "Use retrieved FAQ information as the only source of "
-                "confirmed company policies. "
-                "Never invent or assume return conditions, refund timelines, "
-                "exchange guarantees, shipping charges, warranty coverage, "
-                "email addresses, phone numbers or contact links. "
-                "Do not promise prepaid return labels, refunds or exchanges "
-                "unless the retrieved FAQ explicitly confirms them. "
-                "If the FAQ does not contain the answer, politely explain "
-                "that you do not have confirmed information and recommend "
-                "contacting the company's support team. "
-                "You may ask for an order number when necessary, but do not "
-                "claim you can verify return eligibility unless an "
-                "appropriate tool provides that information. "
-                "Accuracy is more important than giving a complete-sounding "
-                "answer."
+                "FAQ EVIDENCE RULES: "
+                "Retrieved FAQ answers are the only source of "
+                "confirmed company policies available to you. "
+                "Treat FAQ answers as exact evidence, not as "
+                "permission to make assumptions or draw additional "
+                "conclusions. Do not infer eligibility, approvals, "
+                "guarantees, refunds, replacements, return labels, "
+                "shipping costs, deadlines, procedures or outcomes "
+                "unless the retrieved information explicitly "
+                "confirms them. A possibility is not a confirmed "
+                "company policy. If an FAQ does not explicitly "
+                "answer a question, say that you cannot confirm "
+                "the information.\n\n"
+
+                "CONTACT INFORMATION: "
+                "Never invent or assume company email addresses, "
+                "phone numbers, websites, links, contact forms, "
+                "support channels or contact procedures. Mention "
+                "a contact method only if it is explicitly "
+                "provided in verified information. The phrase "
+                "'contact customer support' in an FAQ does not "
+                "authorize you to invent how the customer can "
+                "contact them. If no verified contact method "
+                "is available, say so honestly.\n\n"
+
+                "IMAGE LIMITATION: "
+                "This chat interface does not support image "
+                "uploads. Never ask customers to upload or "
+                "attach photographs here. If an FAQ mentions "
+                "photographs or images, explain that this "
+                "interface cannot receive them. Do not suggest "
+                "email attachments, support portals, websites, "
+                "phone numbers or other submission methods "
+                "unless that method is explicitly confirmed "
+                "in verified information.\n\n"
+
+                "CONVERSATION: "
+                "Use the conversation history to understand "
+                "follow-up questions and remember information "
+                "customers share during the current session, "
+                "including their names. Distinguish customer-"
+                "provided information from order database "
+                "information. Answer the actual question "
+                "directly. Do not repeatedly bring up unrelated "
+                "order information. When you make a mistake, "
+                "acknowledge the specific mistake and correct "
+                "it. Avoid repetitive apologies."
             )
         }
     ]
@@ -138,6 +182,7 @@ async def chat(websocket: WebSocket):
 
                 faq_context = "\n\n".join(
                     [
+                        f"Question: {item.get('question', '')}\n"
                         f"Category: {item['category']}\n"
                         f"FAQ Answer: {item['answer']}"
                         for item in faq_results
@@ -147,24 +192,24 @@ async def chat(websocket: WebSocket):
                 user_content = (
                     f"Customer question: {user_message}\n\n"
                     f"Retrieved FAQ information:\n{faq_context}\n\n"
-                    "Instructions:\n"
-                    "- Answer using only the retrieved FAQ information "
-                    "for company policies.\n"
-                    "- Do not add details that are not present in the FAQs.\n"
-                    "- If the FAQs do not fully answer the question, "
-                    "clearly mention what information is unavailable.\n"
-                    "- You may ask relevant follow-up questions, such as "
-                    "the customer's order number.\n"
+                    "Use the retrieved information only when it "
+                    "directly supports the answer. Do not infer "
+                    "additional policies, eligibility, benefits, "
+                    "procedures, guarantees or contact methods. "
+                    "If the information does not answer the "
+                    "question, clearly state what you cannot "
+                    "confirm."
                 )
 
             else:
 
                 user_content = (
                     f"Customer question: {user_message}\n\n"
-                    "No relevant FAQ information was found.\n"
-                    "Do not guess or invent company policies.\n"
-                    "Politely explain that you do not have confirmed "
-                    "information and recommend contacting customer support."
+                    "No relevant FAQ information was found. "
+                    "Do not invent policies, contact details, "
+                    "procedures or services. If the question "
+                    "requires company-specific information, "
+                    "explain that you cannot confirm it."
                 )
 
             # Add user message to conversation history
@@ -172,7 +217,6 @@ async def chat(websocket: WebSocket):
                 "role": "user",
                 "content": user_content
             })
-
 
             # Tool-calling loop
             tool_rounds = 0
@@ -204,7 +248,8 @@ async def chat(websocket: WebSocket):
                     function_name = tool_call.function.name
 
                     print(
-                        f"\n[TOOL CALL] Function requested: {function_name}"
+                        f"\n[TOOL CALL] Function requested: "
+                        f"{function_name}"
                     )
 
                     print(
@@ -212,27 +257,62 @@ async def chat(websocket: WebSocket):
                         f"{tool_call.function.arguments}"
                     )
 
-                    arguments = json.loads(
-                        tool_call.function.arguments
-                    )
+                    try:
 
-                    print(f"[TOOL EXECUTION] Executing {function_name}...")
-
-                    if function_name == "get_order_status":
-
-                        result = get_order_status(
-                            arguments["order_id"]
+                        arguments = json.loads(
+                            tool_call.function.arguments
                         )
 
-                        print(f"[TOOL RESULT] {result}")
+                        if not isinstance(arguments, dict):
+                            raise ValueError(
+                                "Tool arguments must be a JSON object."
+                            )
 
-                    else:
+                        if function_name == "get_order_status":
+
+                            order_id = arguments.get("order_id")
+
+                            if not isinstance(order_id, str) or not order_id.strip():
+
+                                result = {
+                                    "error": "Invalid order ID."
+                                }
+
+                            else:
+
+                                print(
+                                    f"[TOOL EXECUTION] Executing "
+                                    f"{function_name}..."
+                                )
+
+                                result = get_order_status(
+                                    order_id.strip()
+                                )
+
+                                print(
+                                    f"[TOOL RESULT] {result}"
+                                )
+
+                        else:
+
+                            print(
+                                f"[WARNING] Unexpected tool name: "
+                                f"{function_name}"
+                            )
+
+                            result = {
+                                "error": "Unknown function."
+                            }
+
+                    except (json.JSONDecodeError, ValueError, TypeError) as error:
 
                         print(
-                            f"[WARNING] Unexpected tool name: {function_name}"
+                            f"[TOOL ERROR] {error}"
                         )
 
-                        result = {"error": "Unknown function"}
+                        result = {
+                            "error": "Invalid tool arguments."
+                        }
 
                     # Send function result back to Groq
                     messages.append({
@@ -248,7 +328,6 @@ async def chat(websocket: WebSocket):
                     raise RuntimeError(
                         "Maximum tool-calling rounds exceeded."
                     )
-
 
             # Stream the final response from Groq
             stream = await client.chat.completions.create(
@@ -272,19 +351,16 @@ async def chat(websocket: WebSocket):
                         "content": token
                     })
 
-
             # Save assistant response in conversation history
             messages.append({
                 "role": "assistant",
                 "content": assistant_response
             })
 
-
             # Notify client that response is complete
             await websocket.send_json({
                 "type": "done"
             })
-
 
     except WebSocketDisconnect:
 
