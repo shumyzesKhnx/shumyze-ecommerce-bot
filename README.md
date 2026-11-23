@@ -1,51 +1,104 @@
-HEAD
-# E-Commerce Customer Support Chatbot
+# ShopMate – E-Commerce Customer Support Chatbot
 
-An AI-powered customer support chatbot built using Python and Groq API to assist customers with common e-commerce queries.
+ShopMate is an AI-powered e-commerce customer support chatbot built with FastAPI, Groq, WebSockets, and Retrieval-Augmented Generation (RAG). It can answer customer FAQs and retrieve order information while streaming responses in real time through a web interface.
 
-## Current Features
+## Features
 
-- AI-generated responses using Groq API.
-- Handles customer queries about orders, returns, shipping, and warranties.
-- Professional and customer-friendly responses.
+- AI-powered customer support using Groq.
+- Real-time response streaming using WebSockets.
+- Order status lookup using function calling.
+- FAQ retrieval using ChromaDB and RAG.
+- Simple HTML, CSS, and JavaScript frontend.
 
 ## Technologies Used
 
 - Python
+- FastAPI
+- WebSockets
 - Groq API
-- Large Language Models (LLMs)
-- python-dotenv
+- ChromaDB
+- HTML, CSS, JavaScript
 
-## Setup Instructions
+## Project Setup
 
-1. Clone this repository.
-2. Create and activate a Python virtual environment.
-3. Install the required dependencies:
+### 1. Clone the repository
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+git clone https://github.com/shumyzesKhnx/shumyze-ecommerce-bot.git
+cd shumyze-ecommerce-bot
+```
 
-4. Create a `.env` file in the project directory and add:
+### 2. Create and activate a virtual environment
 
-   ```env
-   GROQ_API_KEY=your_groq_api_key
-   GROQ_MODEL=openai/gpt-oss-20b
-   ```
+```bash
+python -m venv venv
+```
 
-5. Run the chatbot:
+Windows PowerShell:
 
-   ```bash
-   python chatbot.py
-   ```
+```powershell
+.\venv\Scripts\Activate
+```
 
-## Project Status
+### 3. Install dependencies
 
-Currently under development as part of a five-day AI Engineering internship task.
+```bash
+pip install -r requirements.txt
+```
 
-## Security
+### 4. Configure environment variables
 
-Never share or commit your actual API key. Keep the `.env` file excluded through `.gitignore`.
-# shumyze-ecommerce-bot
-Week -1 Task
-4aeade67ff87d02f7f493375f76350a3d5ff5db0
+Create a `.env` file in the project root and add:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=your_model_name
+```
+
+Replace the placeholders with your actual Groq API key and the model name you want to use.
+
+### 5. Ingest the FAQs
+
+Run the following command to load the FAQ data into ChromaDB:
+
+```bash
+python ingest.py
+```
+
+This creates or updates the persistent vector database used for FAQ retrieval.
+
+### 6. Start the FastAPI server
+
+Run:
+
+```bash
+uvicorn main:app --reload
+```
+
+### 7. Open the chatbot
+
+Open your browser and navigate to:
+
+http://localhost:8000
+
+You can now interact with ShopMate through the web interface.
+
+## Project Structure
+
+```text
+.
+├── main.py
+├── ingest.py
+├── faqs.json
+├── index.html
+├── requirements.txt
+├── .env.example
+├── .gitignore
+└── README.md
+```
+
+## Notes
+
+- The order database contains mock order data for demonstration.
+- The chatbot requires a valid Groq API key.
+- FAQ data is stored and retrieved using ChromaDB.
